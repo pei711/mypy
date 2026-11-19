@@ -1458,6 +1458,18 @@ if int():
 [builtins fixtures/ops.pyi]
 [out]
 
+[case testLiteralArgsAttribute]
+from typing import Literal
+
+Key = Literal["a", "b", "c"]
+for key in Key.__args__:
+    reveal_type(key)  # N: Revealed type is "Any"
+
+reveal_type(Key.__args__)  # N: Revealed type is "builtins.tuple[Any, ...]"
+[builtins fixtures/tuple.pyi]
+[typing fixtures/typing-full.pyi]
+[out]
+
 
 --
 -- Tests that check we report errors when we try using Literal[...]
