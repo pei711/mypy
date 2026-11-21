@@ -3,6 +3,13 @@
 -- semantic analysis shenanigans
 --
 
+[case testLiteralArgsAttribute]
+from typing import Literal
+
+Key = Literal["a", "b"]
+args = Key.__args__
+[typing fixtures/typing-full.pyi]
+
 [case testLiteralInvalidString]
 from typing import Literal
 def f1(x: 'A[') -> None: pass  # E: Invalid type comment or annotation
