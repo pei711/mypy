@@ -5512,8 +5512,30 @@ class ExpressionChecker(ExpressionVisitor[Type], ExpressionCheckerSharedApi):
                 if (isinstance(t, TupleType) and self.tuple_context_matches(e, t))
                 or is_named_instance(t, TUPLE_LIKE_INSTANCE_NAMES)
             ]
+            tuple_contexts = [t for t in tuples_in_context if isinstance(t, TupleType)]
             if len(tuples_in_context) == 1:
                 type_context = tuples_in_context[0]
+            elif (
+                len(tuple_contexts) == len(tuples_in_context)
+                and tuple_contexts
+                and all(
+                    isinstance(item_type := get_proper_type(item), LiteralType)
+                    and item_type.is_enum_literal()
+                    for t in tuple_contexts
+                    for item in t.items
+                )
+                and not any(isinstance(item, StarExpr) for item in e.items)
+                and all(len(t.items) == len(e.items) for t in tuple_contexts)
+            ):
+                # Keep enum literal context when a tuple can match several
+                # variants of a union. The item types select the appropriate
+                # tuple variant when the result is checked.
+                type_context_items = [
+                    make_simplified_union(
+                        [t.items[i] for t in tuple_contexts], contract_literals=False
+                    )
+                    for i in range(len(e.items))
+                ]
             else:
                 # There are either no relevant tuples in the Union, or there is
                 # more than one.  Either way, we can't decide on a context.
